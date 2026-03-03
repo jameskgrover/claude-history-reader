@@ -648,7 +648,7 @@
         <button onclick="searchPrev()">PREV</button>
         <span class="search-info" id="searchInfo"></span>
     </div>
-    <div id="dropzone">drop .jsonl file here &mdash; or click LOAD above<br><br><small style="color:#aaa">Session files are in ~/.claude/projects/&lt;project&gt;/</small></div>
+    <div id="dropzone">drop .jsonl file here<br><br><small style="color:#aaa">Session files are in ~/.claude/projects/&lt;project&gt;/<br>Use drag+drop in browser mode. <a href="https://github.com/jameskgrover/claude-history-reader/releases" target="_blank" style="color:var(--yellow)">Download the app</a> for direct loading.</small></div>
     <div class="chat" id="chat"></div>
 
     <script>
@@ -797,8 +797,13 @@
 
         async function openProjectPicker() {
             if (!isElectron) {
-                // Browser fallback: open file picker directly (alert blocks gesture)
-                document.getElementById('fileInput').click();
+                // Browser mode: reset to dropzone so user can drag+drop a new file
+                allMessages = [];
+                allRawLines = [];
+                multiFileMessages = null;
+                chat.innerHTML = '';
+                dropzone.classList.remove('hidden');
+                if (compactMode) exitCompactMode();
                 return;
             }
 
@@ -1727,20 +1732,8 @@
                     btn.textContent = 'ERROR: ' + err.message;
                 }
             } else {
-                // Browser mode: open file picker directly (alert blocks gesture)
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.jsonl,.json';
-                input.onchange = () => {
-                    const file = input.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                        prependOrReplacePrevious(ev.target.result, file.name, null, shiftHeld);
-                    };
-                    reader.readAsText(file);
-                };
-                input.click();
+                // Browser mode: drop-only, file picker doesn't work reliably in Chrome
+                return;
             }
         }
 
@@ -1789,7 +1782,7 @@
             if (!compactMode && subagentStack.length === 0) {
                 const btn = document.createElement('button');
                 btn.className = 'load-prev-btn';
-                btn.textContent = 'LOAD PREVIOUS SESSION (click or drop .jsonl here)';
+                btn.textContent = isElectron ? 'LOAD PREVIOUS SESSION' : 'LOAD PREVIOUS SESSION (drop .jsonl here)';
                 btn.onclick = loadPreviousSession;
                 btn.addEventListener('dragover', (e) => {
                     e.preventDefault();
