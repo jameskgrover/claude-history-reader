@@ -648,7 +648,7 @@
         <button onclick="searchPrev()">PREV</button>
         <span class="search-info" id="searchInfo"></span>
     </div>
-    <div id="dropzone">drop .jsonl file here &mdash; or click LOAD above</div>
+    <div id="dropzone">drop .jsonl file here &mdash; or click LOAD above<br><br><small style="color:#aaa">Session files are in ~/.claude/projects/&lt;project&gt;/</small></div>
     <div class="chat" id="chat"></div>
 
     <script>
@@ -797,8 +797,7 @@
 
         async function openProjectPicker() {
             if (!isElectron) {
-                // Browser fallback: show hint then open file picker
-                alert('Navigate to:\n  ~/.claude/projects/\nto find your history files (JSONL format).\n\nEach project has a folder, and each session is a .jsonl file inside it.');
+                // Browser fallback: open file picker directly (alert blocks gesture)
                 document.getElementById('fileInput').click();
                 return;
             }
@@ -1728,8 +1727,7 @@
                     btn.textContent = 'ERROR: ' + err.message;
                 }
             } else {
-                // Browser mode: hint then open file picker
-                alert('Select the previous session JSONL file.\n\nFind them in:\n  ~/.claude/projects/<project>/\nFiles are sorted by date — pick the one before your current session.');
+                // Browser mode: open file picker directly (alert blocks gesture)
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = '.jsonl,.json';
