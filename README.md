@@ -13,6 +13,7 @@ Or just open `index.html` in your browser — drag and drop any `.jsonl` file to
 ## Live Demo
 
 https://signalrecords.co.uk/apps/claude-history-viewer/index.html
+
 (all files stay local only, nothing gets uploaded to the web)
 
 ## Features
@@ -29,7 +30,7 @@ https://signalrecords.co.uk/apps/claude-history-viewer/index.html
 
 - **Load Previous Session** — button at the top of the chat loads the previous session above the current one; shift+click replaces the current session entirely
 
-- **Manual Compact (EXPERIMENTAL FEATURE)** — select messages to remove manually from context, plus auto-mark tool results etc for removal, then commit to write a compacted JSONL (with backup). Unedited version is retained and linked at each deletion point in case Claude needs to reread anythign that was removed. End claude session then resume with claude -r to pick up the edited context.
+- **Manual Compact** — select messages to remove manually from context, plus auto-mark tool results etc for removal, then commit to write a compacted JSONL (with backup). Unedited version is retained and linked at each deletion point in case Claude needs to reread anythign that was removed. End claude session then resume with claude -r to pick up the edited context. Initially after resuming it will not show context having been reduced, but if you run/context you will see the reduction and otherwise the new context usage should be corrected after 1 message. Possible this may fail if context was at 0%, but tested as working when it's down to only a few %.
 
 - **Electron extras** — project picker, auto-load from `~/.claude/projects/`, direct file read/write for compaction
 
