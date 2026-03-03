@@ -797,7 +797,8 @@
 
         async function openProjectPicker() {
             if (!isElectron) {
-                // Browser fallback: use file input
+                // Browser fallback: show hint then open file picker
+                alert('Navigate to:\n  ~/.claude/projects/\nto find your history files (JSONL format).\n\nEach project has a folder, and each session is a .jsonl file inside it.');
                 document.getElementById('fileInput').click();
                 return;
             }
@@ -1180,6 +1181,29 @@
         function buildToolFilterPanel() {
             const container = document.getElementById('toolFilters');
             container.innerHTML = '';
+
+            // Add SELECT ALL checkbox first
+            const selectAllLabel = document.createElement('label');
+            selectAllLabel.style.borderRight = '1px solid #555';
+            selectAllLabel.style.paddingRight = '12px';
+            selectAllLabel.style.fontWeight = '700';
+            const selectAllCb = document.createElement('input');
+            selectAllCb.type = 'checkbox';
+            selectAllCb.addEventListener('change', () => {
+                const allCbs = container.querySelectorAll('input[type="checkbox"]');
+                allCbs.forEach(cb => {
+                    if (cb !== selectAllCb && cb.checked !== selectAllCb.checked) {
+                        cb.checked = selectAllCb.checked;
+                        if (cb.dataset.toolName) {
+                            onToolFilterChange(cb.dataset.toolName, selectAllCb.checked);
+                        }
+                    }
+                });
+                renderCompactView();
+            });
+            selectAllLabel.appendChild(selectAllCb);
+            selectAllLabel.appendChild(document.createTextNode('SELECT ALL'));
+            container.appendChild(selectAllLabel);
 
             // Only show tool types found in context window
             const typesInContext = new Set();
@@ -1640,6 +1664,7 @@
                 // Reload the compacted content into the viewer
                 window._rawFileContent = finalOutput;
                 alert(`Done!\n\nBackup saved: ${backupFullPath}\nOriginal overwritten with compacted content.\n\nPlease exit your Claude Code session, then resume with:\n  claude -r\nto load the compacted version.`);
+                exitCompactMode();
             } else {
                 // Browser fallback: download both files
                 const backupBlob = new Blob([window._rawFileContent], { type: 'application/jsonl' });
@@ -1660,6 +1685,7 @@
                     URL.revokeObjectURL(url);
 
                     alert(`Done!\n\nBackup saved as: ${backupName}\nCompacted file saved as: ${baseName}\n\nReplace the original JSONL with the compacted file, then exit your Claude Code session and resume with:\n  claude -r\nto load the compacted version.`);
+                    exitCompactMode();
                 }, 500);
             }
         }
@@ -1702,7 +1728,8 @@
                     btn.textContent = 'ERROR: ' + err.message;
                 }
             } else {
-                // Browser mode: prompt user to select a file
+                // Browser mode: hint then open file picker
+                alert('Select the previous session JSONL file.\n\nFind them in:\n  ~/.claude/projects/<project>/\nFiles are sorted by date — pick the one before your current session.');
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.accept = '.jsonl,.json';
@@ -2048,9 +2075,9 @@
             const overlay = document.createElement('div');
             overlay.className = 'subagent-dropzone';
             overlay.innerHTML = `
-                <div>Drop the subagent JSONL file here:</div>
-                <div class="drop-path">${escapeHtml(expectedPath)}</div>
-                <div class="drop-area">drop .jsonl file here</div>
+                <div>Find the subagent file at:</div>
+                <div class="drop-path">~/.claude/projects/.../${escapeHtml(expectedPath)}</div>
+                <div class="drop-area">drop .jsonl here — or click to browse</div>
                 <div class="drop-cancel">cancel (esc)</div>
             `;
             document.body.appendChild(overlay);
@@ -2079,6 +2106,29 @@
                     };
                     reader.readAsText(file);
                 }
+            });
+
+            // Click drop area to open file picker
+            dropArea.addEventListener('click', () => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.jsonl,.json';
+                input.onchange = () => {
+                    const file = input.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        overlay.remove();
+                        pushSubagentState();
+                        window._loadedFileName = file.name;
+                        window._loadedFilePath = null;
+                        parseAndRender(ev.target.result);
+                        updateSubagentBanner();
+                        window.scrollTo(0, 0);
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
             });
 
             cancelBtn.addEventListener('click', () => overlay.remove());
