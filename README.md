@@ -14,7 +14,7 @@ Or just open `index.html` in your browser — drag and drop any `.jsonl` file to
 
 https://signalrecords.co.uk/apps/claude-history-viewer/index.html
 
-(all files stay local only, nothing gets uploaded to the web)
+(all files stay local only, nothing gets uploaded to the web. For the manual compaction feature, direct file editing from the web version is not possible... you must download the edited file then replace the original with it. Please keep a backup of the original too to avoid any risk of data loss if the process somehow corrupts upon download).
 
 ## Features
 
@@ -30,7 +30,14 @@ https://signalrecords.co.uk/apps/claude-history-viewer/index.html
 
 - **Load Previous Session** — button at the top of the chat loads the previous session above the current one; shift+click replaces the current session entirely
 
-- **Manual Compact** — select messages to remove manually from context, plus auto-mark tool results etc for removal, then commit to write a compacted JSONL (with backup). Unedited version is retained and linked at each deletion point in case Claude needs to reread anythign that was removed. End claude session then resume with claude -r to pick up the edited context. Initially after resuming it will not show context having been reduced, but if you run/context you will see the reduction and otherwise the new context usage should be corrected after 1 message. Possible this may fail if context was at 0%, but tested as working when it's down to only a few %.
+- **Manual Compact** - Instructions:
+1. End claude session (CTRL+C x2) when you need to manually compact (when context warning shows between 1% and 10%, Not possible when it hits 0%).
+2. open the current chat history JSONL file with this tool, then press MANUAL COMPACT.
+3. select irrelevant long messages to remove manually from context (optional)
+4. auto-mark tool results etc for removal (recommended to choose SELECT ALL, possibly unchecking 'code edits' if anything critical is ongoing).
+5. press COMMIT to write a compacted JSONL (with a renamed backup of the original one).
+6. Unedited version is retained and linked at each deletion point, in case Claude needs to reread anything that was removed.
+7. Resume with 'claude -r'. Initially it will not show context having been reduced, but should self-correct after 1 message. Do not let context get down to 0% or this will fail. If context is very low (1-2%), you should send a very short message that doesn't require a long answer, just enough to get it to update its 'context' reading (something like "Wait - do not compact" should work best).
 
 - **Electron extras** — project picker, auto-load from `~/.claude/projects/`, direct file read/write for compaction
 
